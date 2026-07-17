@@ -5,6 +5,28 @@ from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 
+import sys
+import subproces
+
+# Принудительно устанавливаем библиотеки
+def install_packages():
+    try:
+        import telegram
+        import libsql_client
+    except ImportError:
+        print("📦 Устанавливаю зависимости...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "python-telegram-bot", "libsql-client"])
+        print("✅ Зависимости установлены")
+
+install_packages()
+
+# Теперь импортируем
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, ConversationHandler, MessageHandler, filters
+import libsql_client
+import logging
+from datetime import datetime, timedelta
+
 # ========== НАСТРОЙКИ ==========
 TELEGRAM_TOKEN = "8878655390:AAEwYv0NSRQRu4rV-j2Q-2JMhPba2fJxi60"
 ADMIN_ID = 8549857532  # твой Telegram ID
