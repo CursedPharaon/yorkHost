@@ -1,0 +1,2 @@
+python-telegram-bot==22.8
+libsql-client==0.3.1
