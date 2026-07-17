@@ -2,13 +2,17 @@ import sys
 import subprocess
 import os
 
-# === АВТОУСТАНОВКА ===
+# === АВТОУСТАНОВКА С ФЛАГОМ ===
 try:
     import telegram
     import libsql_client
 except ImportError:
     print("📦 Устанавливаю python-telegram-bot и libsql-client...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "python-telegram-bot", "libsql-client"])
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install",
+        "--break-system-packages",
+        "python-telegram-bot", "libsql-client"
+    ])
     print("✅ Готово!")
     import telegram
     import libsql_client
@@ -20,7 +24,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 
 # ========== НАСТРОЙКИ ==========
-TELEGRAM_TOKEN = "8878655390:AAEwYv0NSRQRu4rV-j2Q-2JMhPba2fJxi60"  # ВСТАВЬ СВОЙ ТОКЕН!
+TELEGRAM_TOKEN = "ВАШ_ТОКЕН_ТЕЛЕГРАМ_БОТА"  # ВСТАВЬ СВОЙ ТОКЕН!
 ADMIN_ID = 1076312001
 
 TURSO_URL = "libsql://vk-bot-cursedd.aws-eu-west-1.turso.io"
@@ -190,7 +194,6 @@ async def tariff_selection(update, context):
             f"📋 После оплаты админ активирует сервер.",
             parse_mode="HTML"
         )
-        # Уведомление админу
         try:
             await context.bot.send_message(
                 ADMIN_ID,
