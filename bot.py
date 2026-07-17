@@ -1,48 +1,37 @@
-import logging
-import sqlite3
-import os
-from datetime import datetime, timedelta
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, ConversationHandler, MessageHandler, filters
-
 import sys
-import subproces
+import subprocess
+import os
 
-# Принудительно устанавливаем библиотеки
-def install_packages():
-    try:
-        import telegram
-        import libsql_client
-    except ImportError:
-        print("📦 Устанавливаю зависимости...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "python-telegram-bot", "libsql-client"])
-        print("✅ Зависимости установлены")
+# === АВТОУСТАНОВКА ===
+try:
+    import telegram
+    import libsql_client
+except ImportError:
+    print("📦 Устанавливаю python-telegram-bot и libsql-client...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "python-telegram-bot", "libsql-client"])
+    print("✅ Готово!")
+    import telegram
+    import libsql_client
 
-install_packages()
-
-# Теперь импортируем
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, ConversationHandler, MessageHandler, filters
-import libsql_client
+# === ОСНОВНОЙ КОД ===
 import logging
 from datetime import datetime, timedelta
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 
 # ========== НАСТРОЙКИ ==========
-TELEGRAM_TOKEN = "8878655390:AAEwYv0NSRQRu4rV-j2Q-2JMhPba2fJxi60"
-ADMIN_ID = 8549857532  # твой Telegram ID
+TELEGRAM_TOKEN = "8878655390:AAEwYv0NSRQRu4rV-j2Q-2JMhPba2fJxi60"  # ВСТАВЬ СВОЙ ТОКЕН!
+ADMIN_ID = 1076312001
 
-# База данных Turso (через libsql)
 TURSO_URL = "libsql://vk-bot-cursedd.aws-eu-west-1.turso.io"
 TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODQyOTA1NDAsImlkIjoiMDE5ZjcwMDAtOTcwMS03NDJjLWIwM2EtNzA0MTQ2MDk4ZWI2Iiwia2lkIjoicWpYbEhLbElGQmJNX29uRDlaWEkyWFVfazVBT3h3X3JIMF9TcUZ6MmU0ZyIsInJpZCI6ImM3OTFiYzM5LTg3YjktNDgwZC1iZjRkLTEwMDdiNTI1YTg2NCJ9.rvnr8-mOPA7ydTmVKb1C4QDIxA_se-HSIiGQX5OaJ9vnj89C4xJ5PZnHn5ldw4eQMf-5pRXztvisg-chcKj4Dw"
 
-# Состояния для диалога
-NAME, ADMIN_NICK, TARIFF = range(3)
-
 logging.basicConfig(level=logging.INFO)
+
+NAME, ADMIN_NICK, TARIFF = range(3)
 
 # ========== ПОДКЛЮЧЕНИЕ К БАЗЕ ==========
 def get_db():
-    import libsql_client
     return libsql_client.connect(TURSO_URL, auth_token=TURSO_TOKEN)
 
 def init_db():
@@ -187,7 +176,6 @@ async def tariff_selection(update, context):
             f"🎮 Играй: https://york-game.onrender.com/play?server={server_id}",
             parse_mode="HTML"
         )
-        await notify_admin(f"🆓 Бесплатный сервер создан!\nИгрок: @{username}\nНазвание: {server_name}\nАдмин: {admin_nick}")
         return ConversationHandler.END
 
     elif tariff == "premium":
@@ -202,17 +190,23 @@ async def tariff_selection(update, context):
             f"📋 После оплаты админ активирует сервер.",
             parse_mode="HTML"
         )
-        await notify_admin(
-            f"⭐ <b>Новая заявка на Premium сервер!</b>\n\n"
-            f"ID: {order_id}\n"
-            f"Игрок: @{username} (TG ID: {tg_id})\n"
-            f"Название: {server_name}\n"
-            f"Админ: {admin_nick}\n"
-            f"Размер: 150x150\n"
-            f"Вайп: 30 дней\n"
-            f"Стоимость: 100 ₽\n\n"
-            f"Для активации: /approve {order_id}"
-        )
+        # Уведомление админу
+        try:
+            await context.bot.send_message(
+                ADMIN_ID,
+                f"⭐ <b>Новая заявка на Premium сервер!</b>\n\n"
+                f"ID: {order_id}\n"
+                f"Игрок: @{username} (TG ID: {tg_id})\n"
+                f"Название: {server_name}\n"
+                f"Админ: {admin_nick}\n"
+                f"Размер: 150x150\n"
+                f"Вайп: 30 дней\n"
+                f"Стоимость: 100 ₽\n\n"
+                f"Для активации: /approve {order_id}",
+                parse_mode="HTML"
+            )
+        except:
+            pass
         return ConversationHandler.END
 
 async def cancel(update, context):
@@ -256,32 +250,33 @@ async def approve_order(update, context):
     if not context.args:
         await update.message.reply_text("❌ Укажите ID заявки: /approve 123")
         return
-    order_id = int(context.args[0])
-    server_id, tg_id, server_name = approve_order(order_id)
-    await update.message.reply_text(f"✅ Заявка #{order_id} одобрена! Сервер создан.")
     try:
-        await context.bot.send_message(
-            tg_id,
-            f"✅ <b>Ваш премиум сервер создан!</b>\n\n"
-            f"📛 Название: {server_name}\n"
-            f"🎮 Играй: https://york-game.onrender.com/play?server={server_id}\n\n"
-            f"Приятной игры! 🎮",
-            parse_mode="HTML"
-        )
-    except:
-        pass
-
-# ========== УВЕДОМЛЕНИЕ АДМИНА ==========
-async def notify_admin(text):
-    # Отправка уведомления админу (делается внутри команд)
-    pass
+        order_id = int(context.args[0])
+    except ValueError:
+        await update.message.reply_text("❌ Укажите числовой ID: /approve 123")
+        return
+    try:
+        server_id, tg_id, server_name = approve_order(order_id)
+        await update.message.reply_text(f"✅ Заявка #{order_id} одобрена! Сервер создан.")
+        try:
+            await context.bot.send_message(
+                tg_id,
+                f"✅ <b>Ваш премиум сервер создан!</b>\n\n"
+                f"📛 Название: {server_name}\n"
+                f"🎮 Играй: https://york-game.onrender.com/play?server={server_id}\n\n"
+                f"Приятной игры! 🎮",
+                parse_mode="HTML"
+            )
+        except:
+            pass
+    except Exception as e:
+        await update.message.reply_text(f"❌ Ошибка: {e}")
 
 # ========== ЗАПУСК ==========
 def main():
     init_db()
     app = Application.builder().token(TELEGRAM_TOKEN).build()
 
-    # Диалог создания сервера
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("create", create_start)],
         states={
