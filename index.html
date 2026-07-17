@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>York Hosting — Панель управления</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0f0a;
+            font-family: 'Courier New', monospace;
+            color: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: #121a12;
+            border: 2px solid #2a4a2a;
+            border-radius: 16px;
+            padding: 24px 20px;
+            box-shadow: 0 0 60px rgba(0, 255, 100, 0.06);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 1px solid #1a2a1a;
+            padding-bottom: 14px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #3a8a3a;
+            letter-spacing: 2px;
+        }
+        .logo span {
+            color: #5a9a5a;
+        }
+        .user-info {
+            font-size: 13px;
+            color: #6a8a6a;
+        }
+        .user-info b {
+            color: #8a8;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0 12px;
+            flex-wrap: wrap;
+        }
+        .tabs button {
+            background: #0f1a0f;
+            border: 1px solid #1a2a1a;
+            color: #6a8a6a;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .tabs button.active {
+            border-color: #3a7a3a;
+            color: #8a8;
+            background: #1a2a1a;
+        }
+        .tabs button:hover {
+            border-color: #2a4a2a;
+            color: #aaa;
+        }
+        .panel {
+            display: none;
+            animation: fade 0.3s;
+        }
+        .panel.active {
+            display: block;
+        }
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .server-card {
+            background: #0f1a0f;
+            border: 1px solid #1a2a1a;
+            border-radius: 12px;
+            padding: 16px 18px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .server-card .name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #8a8;
+        }
+        .server-card .status {
+            font-size: 13px;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        .server-card .status.online {
+            background: #1a3a1a;
+            color: #4a4;
+        }
+        .server-card .status.offline {
+            background: #2a1a1a;
+            color: #a44;
+        }
+        .server-card .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .server-card .actions button {
+            background: #1a2a1a;
+            border: 1px solid #2a3a2a;
+            color: #aaa;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .server-card .actions button:hover {
+            border-color: #3a5a3a;
+            color: #eee;
+        }
+        .server-card .actions button.danger:hover {
+            border-color: #5a2a2a;
+            color: #c44;
+        }
+        .console-box {
+            background: #0a0f0a;
+            border: 1px solid #1a2a1a;
+            border-radius: 8px;
+            padding: 12px;
+            height: 280px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 8px 0 10px;
+            font-family: 'Courier New', monospace;
+        }
+        .console-box .log-entry {
+            border-bottom: 1px solid #111f11;
+            padding: 2px 0;
+        }
+        .console-box .log-entry .time {
+            color: #4a6a4a;
+        }
+        .console-box .log-entry .server {
+            color: #4a8a4a;
+        }
+        .console-box .log-entry .player {
+            color: #8a8;
+        }
+        .console-box .log-entry .system {
+            color: #6a8a6a;
+        }
+        .console-input {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .console-input input {
+            flex: 1;
+            background: #0a0f0a;
+            border: 1px solid #1a2a1a;
+            color: #eee;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+        }
+        .console-input input:focus {
+            border-color: #2a4a2a;
+        }
+        .console-input button {
+            background: #1a2a1a;
+            border: 1px solid #2a3a2a;
+            color: #eee;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .console-input button:hover {
+            border-color: #3a5a3a;
+        }
+        .tariffs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin: 12px 0;
+        }
+        .tariff-card {
+            background: #0f1a0f;
+            border: 1px solid #1a2a1a;
+            border-radius: 12px;
+            padding: 18px 16px;
+            text-align: center;
+        }
+        .tariff-card .name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #8a8;
+        }
+        .tariff-card .details {
+            font-size: 13px;
+            color: #6a8a6a;
+            margin: 6px 0;
+            line-height: 1.6;
+        }
+        .tariff-card .price {
+            font-size: 22px;
+            font-weight: bold;
+            color: #4a9a4a;
+        }
+        .tariff-card .price small {
+            font-size: 13px;
+            color: #6a8a6a;
+            font-weight: normal;
+        }
+        .tariff-card button {
+            margin-top: 10px;
+            background: #2a4a2a;
+            border: none;
+            color: #eee;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #3a5a3a;
+            width: 100%;
+        }
+        .tariff-card button:hover {
+            background: #3a6a3a;
+        }
+        .tariff-card .free {
+            color: #6a8a6a;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: #121a12;
+            border: 2px solid #2a4a2a;
+            border-radius: 16px;
+            padding: 30px 24px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .modal h2 {
+            color: #8a8;
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+        .modal .desc {
+            color: #6a8a6a;
+            font-size: 14px;
+            margin-bottom: 18px;
+        }
+        .modal .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .modal .btn-group a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #1a2a1a;
+            border: 1px solid #2a3a2a;
+            color: #eee;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .modal .btn-group a:hover {
+            border-color: #3a5a3a;
+            background: #1f2f1f;
+        }
+        .modal .btn-group .vk {
+            border-color: #2a3a5a;
+        }
+        .modal .btn-group .vk:hover {
+            border-color: #3a5a8a;
+        }
+        .modal .btn-group .tg {
+            border-color: #2a5a5a;
+        }
+        .modal .btn-group .tg:hover {
+            border-color: #3a7a7a;
+        }
+        .modal .close-btn {
+            margin-top: 14px;
+            background: transparent;
+            border: 1px solid #2a3a2a;
+            color: #6a8a6a;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .modal .close-btn:hover {
+            border-color: #3a4a3a;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .status-dot.online {
+            background: #4a4;
+        }
+        .status-dot.offline {
+            background: #a44;
+        }
+        .empty-state {
+            text-align: center;
+            color: #4a6a4a;
+            padding: 30px 0;
+        }
+        .empty-state .big {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+        .settings-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin: 12px 0;
+            align-items: center;
+        }
+        .settings-row label {
+            color: #6a8a6a;
+            font-size: 14px;
+        }
+        .settings-row input, .settings-row select {
+            background: #0a0f0a;
+            border: 1px solid #1a2a1a;
+            color: #eee;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: inherit;
+            outline: none;
+        }
+        .settings-row input:focus, .settings-row select:focus {
+            border-color: #2a4a2a;
+        }
+        .btn-small {
+            background: #1a2a1a;
+            border: 1px solid #2a3a2a;
+            color: #aaa;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .btn-small:hover {
+            border-color: #3a5a3a;
+            color: #eee;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 14px; }
+            .logo { font-size: 24px; }
+            .server-card { flex-direction: column; align-items: stretch; }
+            .server-card .actions { justify-content: center; }
+            .console-input { flex-direction: column; }
+            .tariffs-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Шапка -->
+    <div class="header">
+        <div class="logo">Y<span>O</span>RK <span style="font-size:14px;color:#4a6a4a;">hosting</span></div>
+        <div class="user-info">
+            👤 <b id="usernameDisplay">kalashnikov3002</b>
+            <span style="margin-left:12px;">💰 <span id="balanceDisplay">500</span> ₽</span>
+        </div>
+    </div>
+
+    <!-- Вкладки -->
+    <div class="tabs">
+        <button class="active" data-tab="servers">📡 Мои сервера</button>
+        <button data-tab="create">🛒 Создать сервер</button>
+        <button data-tab="console">🖥️ Консоль</button>
+    </div>
+
+    <!-- ===== ВКЛАДКА: СЕРВЕРА ===== -->
+    <div id="tab-servers" class="panel active">
+        <div id="serverList">
+            <div class="server-card">
+                <div>
+                    <div class="name">🌐 York Wibe</div>
+                    <div style="font-size:13px;color:#6a8a6a;">admin: cursed_pharaon · 150x150 · вайп 30д</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <span class="status online"><span class="status-dot online"></span>Онлайн</span>
+                    <div class="actions">
+                        <button onclick="toggleServer('york-wibe')">⏸️ Выключить</button>
+                        <button onclick="openConsole('york-wibe')">🖥️ Консоль</button>
+                        <button class="danger" onclick="deleteServer('york-wibe')">🗑️</button>
+                    </div>
+                </div>
+            </div>
+            <div class="server-card">
+                <div>
+                    <div class="name">🌐 York PvP</div>
+                    <div style="font-size:13px;color:#6a8a6a;">admin: player123 · 200x200 · вайп 14д</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <span class="status offline"><span class="status-dot offline"></span>Офлайн</span>
+                    <div class="actions">
+                        <button onclick="toggleServer('york-pvp')">▶️ Включить</button>
+                        <button onclick="openConsole('york-pvp')">🖥️ Консоль</button>
+                        <button class="danger" onclick="deleteServer('york-pvp')">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="empty-state" id="emptyState" style="display:none;">
+            <div class="big">🏗️</div>
+            <div>У вас пока нет серверов</div>
+            <div style="font-size:13px;color:#4a6a4a;">Перейдите во вкладку «Создать сервер»</div>
+        </div>
+    </div>
+
+    <!-- ===== ВКЛАДКА: СОЗДАТЬ СЕРВЕР ===== -->
+    <div id="tab-create" class="panel">
+        <h3 style="color:#8a8;margin-bottom:12px;">🛒 Выберите тариф</h3>
+        <div class="tariffs-grid">
+            <!-- Бесплатный -->
+            <div class="tariff-card">
+                <div class="name">🆓 Бесплатный</div>
+                <div class="details">
+                    40x40 · 7 дней вайп<br>
+                    5 игроков · 3 дома
+                </div>
+                <div class="price free">0 ₽</div>
+                <button onclick="buyTariff('free')">Создать</button>
+            </div>
+            <!-- Стандарт -->
+            <div class="tariff-card">
+                <div class="name">⭐ Стандарт</div>
+                <div class="details">
+                    150x150 · 30 дней вайп<br>
+                    20 игроков · безлимит домов
+                </div>
+                <div class="price">79 ₽ <small>/мес</small></div>
+                <button onclick="buyTariff('standard')">Купить</button>
+            </div>
+            <!-- Премиум -->
+            <div class="tariff-card">
+                <div class="name">👑 Премиум</div>
+                <div class="details">
+                    250x250 · без вайпа<br>
+                    50 игроков · безлимит домов<br>
+                    Приоритетная поддержка
+                </div>
+                <div class="price">199 ₽ <small>/мес</small></div>
+                <button onclick="buyTariff('premium')">Купить</button>
+            </div>
+        </div>
+        <div style="margin-top:8px;font-size:13px;color:#4a6a4a;text-align:center;">
+            💳 После оплаты сервер создаётся автоматически в течение 5 минут
+        </div>
+    </div>
+
+    <!-- ===== ВКЛАДКА: КОНСОЛЬ ===== -->
+    <div id="tab-console" class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <h3 style="color:#8a8;">🖥️ Консоль сервера</h3>
+            <select id="consoleServerSelect" style="background:#0a0f0a;border:1px solid #1a2a1a;color:#eee;padding:6px 12px;border-radius:6px;font-family:inherit;">
+                <option value="york-wibe">York Wibe</option>
+                <option value="york-pvp">York PvP</option>
+            </select>
+        </div>
+        <div class="console-box" id="consoleLog">
+            <div class="log-entry"><span class="time">[13:45:21]</span> <span class="server">[Сервер]</span> York Wibe запущен</div>
+            <div class="log-entry"><span class="time">[13:45:22]</span> <span class="system">[Система]</span> Игрок <span class="player">cursed_pharaon</span> вошёл на сервер</div>
+            <div class="log-entry"><span class="time">[13:45:30]</span> <span class="player">cursed_pharaon</span> построил дом</div>
+            <div class="log-entry"><span class="time">[13:46:10]</span> <span class="player">kalashnikov3002</span> забрал 10 дерева из сундука</div>
+            <div class="log-entry"><span class="time">[13:47:05]</span> <span class="server">[Сервер]</span> Игрок <span class="player">player123</span> присоединился</div>
+        </div>
+        <div class="console-input">
+            <input id="consoleInput" placeholder="Введите команду или сообщение от имени сервера..." onkeydown="if(event.key==='Enter')sendConsoleCommand()">
+            <button onclick="sendConsoleCommand()">➤ Отправить</button>
+        </div>
+        <div style="font-size:12px;color:#4a6a4a;margin-top:6px;">
+            💡 Команды: /say [текст] — отправить сообщение в чат от имени сервера, /kick [ник] — кикнуть игрока
+        </div>
+    </div>
+</div>
+
+<!-- ===== МОДАЛКА ОПЛАТЫ ===== -->
+<div class="modal-overlay" id="paymentModal">
+    <div class="modal">
+        <h2>💳 Оплата</h2>
+        <div class="desc" id="paymentDesc">Вы выбрали тариф «Стандарт» на 79 ₽/мес</div>
+        <div class="btn-group">
+            <a href="https://vk.ru/kalashnikov3002" target="_blank" class="vk">✉️ Написать в ВК</a>
+            <a href="https://t.me/cursed_pharaon" target="_blank" class="tg">✉️ Написать в Telegram</a>
+        </div>
+        <button class="close-btn" onclick="closePaymentModal()">Закрыть</button>
+    </div>
+</div>
+
+<script>
+    // ========== ДАННЫЕ ==========
+    const servers = [
+        { id: 'york-wibe', name: 'York Wibe', admin: 'cursed_pharaon', size: 150, wipe: 30, status: 'online' },
+        { id: 'york-pvp', name: 'York PvP', admin: 'player123', size: 200, wipe: 14, status: 'offline' }
+    ];
+
+    let currentTariff = null;
+
+    // ========== ВКЛАДКИ ==========
+    document.querySelectorAll('.tabs button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const tab = this.dataset.tab;
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+        });
+    });
+
+    // ========== УПРАВЛЕНИЕ СЕРВЕРАМИ ==========
+    function toggleServer(id) {
+        const server = servers.find(s => s.id === id);
+        if (!server) return;
+        server.status = server.status === 'online' ? 'offline' : 'online';
+        renderServers();
+    }
+
+    function deleteServer(id) {
+        if (!confirm('Удалить сервер ' + id + '? Все данные будут потеряны.')) return;
+        const idx = servers.findIndex(s => s.id === id);
+        if (idx !== -1) servers.splice(idx, 1);
+        renderServers();
+    }
+
+    function openConsole(id) {
+        document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-tab="console"]').classList.add('active');
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('tab-console').classList.add('active');
+        document.getElementById('consoleServerSelect').value = id;
+        // Добавляем в лог
+        addConsoleLog('Система', 'Открыта консоль для ' + id);
+    }
+
+    function renderServers() {
+        const list = document.getElementById('serverList');
+        const empty = document.getElementById('emptyState');
+        if (servers.length === 0) {
+            list.style.display = 'none';
+            empty.style.display = 'block';
+            return;
+        }
+        list.style.display = 'block';
+        empty.style.display = 'none';
+        list.innerHTML = servers.map(s => `
+            <div class="server-card">
+                <div>
+                    <div class="name">🌐 ${s.name}</div>
+                    <div style="font-size:13px;color:#6a8a6a;">admin: ${s.admin} · ${s.size}x${s.size} · вайп ${s.wipe}д</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <span class="status ${s.status}"><span class="status-dot ${s.status}"></span>${s.status === 'online' ? 'Онлайн' : 'Офлайн'}</span>
+                    <div class="actions">
+                        <button onclick="toggleServer('${s.id}')">${s.status === 'online' ? '⏸️ Выключить' : '▶️ Включить'}</button>
+                        <button onclick="openConsole('${s.id}')">🖥️ Консоль</button>
+                        <button class="danger" onclick="deleteServer('${s.id}')">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ========== КОНСОЛЬ ==========
+    function addConsoleLog(type, message) {
+        const log = document.getElementById('consoleLog');
+        const time = new Date().toLocaleTimeString();
+        const typeClass = type === 'Сервер' ? 'server' : type === 'Система' ? 'system' : 'player';
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.innerHTML = `<span class="time">[${time}]</span> <span class="${typeClass}">[${type}]</span> ${message}`;
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function sendConsoleCommand() {
+        const input = document.getElementById('consoleInput');
+        const cmd = input.value.trim();
+        if (!cmd) return;
+        input.value = '';
+        const server = document.getElementById('consoleServerSelect').value;
+        addConsoleLog('Система', `Выполнена команда на сервере ${server}: "${cmd}"`);
+        // Эмуляция ответа сервера
+        setTimeout(() => {
+            if (cmd.startsWith('/say ')) {
+                const msg = cmd.replace('/say ', '');
+                addConsoleLog('Сервер', `[Сообщение сервера] ${msg}`);
+            } else if (cmd.startsWith('/kick ')) {
+                const nick = cmd.replace('/kick ', '');
+                addConsoleLog('Сервер', `Игрок ${nick} был кикнут`);
+            } else {
+                addConsoleLog('Сервер', `Команда "${cmd}" выполнена`);
+            }
+        }, 300);
+    }
+
+    // ========== ОПЛАТА ==========
+    function buyTariff(tariff) {
+        const names = {
+            free: 'Бесплатный',
+            standard: 'Стандарт',
+            premium: 'Премиум'
+        };
+        const prices = {
+            free: '0 ₽',
+            standard: '79 ₽/мес',
+            premium: '199 ₽/мес'
+        };
+        currentTariff = tariff;
+        document.getElementById('paymentDesc').textContent = 
+            `Вы выбрали тариф «${names[tariff]}» на ${prices[tariff]}`;
+        document.getElementById('paymentModal').classList.add('active');
+    }
+
+    function closePaymentModal() {
+        document.getElementById('paymentModal').classList.remove('active');
+    }
+
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    renderServers();
+
+    // Добавляем тестовые сообщения в консоль с интервалом
+    let msgCount = 0;
+    setInterval(() => {
+        const msgs = [
+            'Игрок kalashnikov3002 зашёл на сервер',
+            'Игрок player123 построил дом',
+            'Игрок cursed_pharaon взорвал бомбу',
+            'Игрок kalashnikov3002 забрал 5 камня из сундука',
+            'Сервер: вайп через 3 дня'
+        ];
+        if (msgCount < msgs.length) {
+            addConsoleLog('Игрок', msgs[msgCount]);
+            msgCount++;
+        }
+    }, 5000);
+
+    console.log('🏗️ York Hosting загружен!');
+</script>
+</body>
+</html>
